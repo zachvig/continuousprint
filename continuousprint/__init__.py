@@ -42,7 +42,6 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	
 	##~~ Event hook
 	def on_event(self, event, payload):
-		from octoprint.events import Events
 		##  Print complete check it was the print in the bottom of the queue and not just any print
 		if event == Events.PRINT_DONE:
 			if self.enabled == True:
@@ -57,7 +56,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				# If the printer is operational and the last print succeeded then we start next print
 				state = self._printer.get_state_id()
 				if state  == "OPERATIONAL":
-					self.start_next_print()
+					if self.enabled == True and self.paused == False:
+						self.start_next_print()
 			
 		if event == Events.FILE_SELECTED:
 			# Add some code to clear the print at the bottom
