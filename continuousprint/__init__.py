@@ -42,30 +42,34 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	
 	##~~ Event hook
 	def on_event(self, event, payload):
-		##  Print complete check it was the print in the bottom of the queue and not just any print
-		if event == Events.PRINT_DONE:
-			if self.enabled == True:
-				self.complete_print(payload)
-		
-		# On fail stop all prints
-		if event == Events.PRINT_FAILED or event == Events.PRINT_CANCELLED:
-			self.enabled = False # Set enabled to false
-			self._plugin_manager.send_plugin_message(self._identifier, dict(type="error", msg="Print queue cancelled"))
-		
-		if event == Events.PRINTER_STATE_CHANGED:
-				# If the printer is operational and the last print succeeded then we start next print
-				state = self._printer.get_state_id()
-				if state  == "OPERATIONAL":
-					if self.enabled == True and self.paused == False:
-						self.start_next_print()
-			
-		if event == Events.FILE_SELECTED:
-			# Add some code to clear the print at the bottom
-			self._logger.info("File selected")
-			bed_clearing_script=self._settings.get(["cp_bed_clearing_script"])
+		try:
+			##  Print complete check it was the print in the bottom of the queue and not just any print
+			if event == Events.PRINT_DONE:
+				if self.enabled == True:
+					self.complete_print(payload)
 
-		if event == Events.UPDATED_FILES:
-			self._plugin_manager.send_plugin_message(self._identifier, dict(type="updatefiles", msg=""))
+			# On fail stop all prints
+			if event == Events.PRINT_FAILED or event == Events.PRINT_CANCELLED:
+				self.enabled = False # Set enabled to false
+				self._plugin_manager.send_plugin_message(self._identifier, dict(type="error", msg="Print queue cancelled"))
+
+			if event == Events.PRINTER_STATE_CHANGED:
+					# If the printer is operational and the last print succeeded then we start next print
+					state = self._printer.get_state_id()
+					if state  == "OPERATIONAL":
+						if self.enabled == True and self.paused == False:
+							self.start_next_print()
+
+			if event == Events.FILE_SELECTED:
+				# Add some code to clear the print at the bottom
+				self._logger.info("File selected")
+				bed_clearing_script=self._settings.get(["cp_bed_clearing_script"])
+
+			if event == Events.UPDATED_FILES:
+				self._plugin_manager.send_plugin_message(self._identifier, dict(type="updatefiles", msg=""))
+		except Exception as error:
+			raise error
+			self._logger.exception("Exception when handling event.")
 
 	def complete_print(self, payload):
 		queue = json.loads(self._settings.get(["cp_queue"]))
