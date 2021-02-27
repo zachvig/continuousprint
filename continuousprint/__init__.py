@@ -84,8 +84,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				
 			self.item["times_run"] += 1
 			
-			#Add to the print History
-			self.add_to_print_history(payload,self.item)
+			
 			
 			# On complete_print, remove the item from the queue 
 			# if the item has run for loop count  or no loop count is specified and 
@@ -103,12 +102,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 			self._settings.set(["cp_queue"], json.dumps(queue))
 			self._settings.save()
 			
-			
-			
-
-			# Clear down the bed
-			self.clear_bed()
-
+			#Add to the print History
+			self.add_to_print_history(payload,self.item)
 		else:
 			enabled = False
 
@@ -168,9 +163,13 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				name = payload["name"],
 				time = payload["time"]
 			))	
+		
 		#save print history
 		self._settings.set(["cp_print_history"], json.dumps(print_history))
 		self._settings.save()
+		
+		# Clear down the bed
+		self.clear_bed()
 		
 		# Tell the UI to reload
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="reload", msg=""))
