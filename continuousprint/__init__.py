@@ -17,7 +17,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	paused = False
 	looped = False
 	item = None;
-
+	clear=False
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
 		return dict(
@@ -169,18 +169,20 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		self._settings.save()
 		
 		# Clear down the bed
-		self.clear_bed()
+		#self.clear_bed()
 		
 		# Tell the UI to reload
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="reload", msg=""))
 	
 
-	def clear_bed(self):
+	def clear_bed(self,comm_instance, phase, cmd, cmd_type, gcode, subcode=None, tags=None, *args, **kwargs):
 		if self.clear:
-			self.clear=false
+			self.clear=False
 			self._logger.info("Clearing bed")
 			bed_clearing_script=self._settings.get(["cp_bed_clearing_script"]).split("\n")	
-			self._printer.commands(self.parse_gcode(bed_clearing_script))
+			listOfCommands=self.parse_gcode(bed_clearing_script)
+			listOfCommands=listOfCommands.append(cmd)
+			return listOfCommands
 		
 	def complete_queue(self):
 		self.enabled = False # Set enabled to false
@@ -205,6 +207,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				try:
 					self._printer.select_file(queue[0]["path"], sd)
 					self._logger.info(queue[0]["path"])
+					self.clear=True
 					self._printer.start_print()
 				except InvalidFileLocation:
 					self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", msg="ERROR file not found"))
