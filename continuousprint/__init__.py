@@ -381,7 +381,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 					comittish=["rc", "master"],
 				    )
 				],
-                                # update method: pip
+                              # update method: pip
 				pip="https://github.com/Zinc-OS/continuousprint/archive/{target_version}.zip"
 			)
 		)
