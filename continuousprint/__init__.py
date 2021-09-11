@@ -322,10 +322,19 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/resumequeue", methods=["GET"])
 	@restricted_access
 	def resume_queue(self):
-		self.paused = False
-		self.start_next_print()
-		return flask.make_response("success", 200)
+        if self.paused == True: # add same logic, only run if paused, otherwise it'll call "self.start_next_print()" even if currently printing...
+            self.paused = False
+            self.start_next_print()
+            return flask.make_response("success", 200)
 	
+    # Listen for resume from printer ("M118 //action:queuego"), only act if actually paused.
+	def resume_action_handler(self, comm, line, action, *args, **kwargs):
+		if not action == "queuego":
+			return
+		if self.paused == True:
+			self.paused = False
+			self.start_next_print()
+
 	##~~  TemplatePlugin
 	def get_template_vars(self):
 		return dict(
@@ -372,7 +381,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 					comittish=["rc", "master"],
 				    )
 				],
-				# update method: pip
+                # update method: pip
 				pip="https://github.com/Zinc-OS/continuousprint/archive/{target_version}.zip"
 			)
 		)
@@ -387,6 +396,7 @@ def __plugin_load__():
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+		"octoprint.comm.protocol.action": __plugin_implementation__.resume_action_handler # register to listen for "M118 //action:" commands
 	}
 
