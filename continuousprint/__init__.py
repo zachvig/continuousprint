@@ -9,6 +9,7 @@ import os
 
 from octoprint.server.util.flask import restricted_access
 from octoprint.events import eventManager, Events
+from octoprint.access.permissions import Permissions,ADMIN_GROUP
 
 class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 							octoprint.plugin.TemplatePlugin,
@@ -460,6 +461,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/loop", methods=["GET"])
 	@restricted_access
 	def loop(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_LOOP.can():
+			return flask.make_response("insufficient rights to loop", 403)
 		self.looped=True
 		self._settings.set(["cp_looped"], "true")
 		return flask.make_response("success", 200)
@@ -468,6 +471,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/unloop", methods=["GET"])
 	@restricted_access
 	def unloop(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_LOOP.can():
+			return flask.make_response("insufficient rights to unloop", 403)
 		self.looped=False
 		self._settings.set(["cp_looped"], "false")
 		return flask.make_response("success", 200)
@@ -488,6 +493,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/queueup", methods=["GET"])
 	@restricted_access
 	def queue_up(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_CHQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
 		index = int(flask.request.args.get("index", 0))
 		queue = json.loads(self._settings.get(["cp_queue"]))
 		orig = queue[index]
@@ -500,6 +507,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/change", methods=["GET"])
 	@restricted_access
 	def change(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_CHQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
 		index = int(flask.request.args.get("index")) 
 		count = int(flask.request.args.get("count"))
 		queue = json.loads(self._settings.get(["cp_queue"]))
@@ -511,6 +520,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/queuedown", methods=["GET"])
 	@restricted_access
 	def queue_down(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_CHQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
 		index = int(flask.request.args.get("index", 0))
 		queue = json.loads(self._settings.get(["cp_queue"]))
 		orig = queue[index]
@@ -523,6 +534,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/addqueue", methods=["POST"])
 	@restricted_access
 	def add_queue(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_ADDQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
 		queue = json.loads(self._settings.get(["cp_queue"]))
 		try:
 			self._logger.debug(flask.request.form)
@@ -550,6 +563,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/removequeue", methods=["DELETE"])
 	@restricted_access
 	def remove_queue(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_RMQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
 		queue = json.loads(self._settings.get(["cp_queue"]))
 		self._logger.info(flask.request.args.get("index", 0))
 		queue.pop(int(flask.request.args.get("index", 0)))
@@ -560,6 +575,8 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/startqueue", methods=["GET"])
 	@restricted_access
 	def start_queue(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_STARTQUEUE.can():
+			return flask.make_response("insufficient rights to start queue", 403)
 		self._settings.set(["cp_print_history"], "[]")#Clear Print History
 		self._settings.save()
 		self.paused = False
@@ -570,10 +587,10 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/resumequeue", methods=["GET"])
 	@restricted_access
 	def resume_queue(self):
-        if self.paused == True: # add same logic, only run if paused, otherwise it'll call "self.start_next_print()" even if currently printing...
-            self.paused = False
-            self.start_next_print()
-            return flask.make_response("success", 200)
+		if self.paused == True: # add same logic, only run if paused, otherwise it'll call "self.start_next_print()" even if currently printing...
+			self.paused = False
+			self.start_next_print()
+			return flask.make_response("success", 200)
 	
     # Listen for resume from printer ("M118 //action:queuego"), only act if actually paused.
 	def resume_action_handler(self, comm, line, action, *args, **kwargs):
@@ -633,6 +650,49 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				pip="https://github.com/Zinc-OS/continuousprint/archive/{target_version}.zip"
 			)
 		)
+	def add_permissions(*args, **kwargs):
+    	return [
+		dict(key="STARTQUEUE",
+		     name="Continuous Print Start Queue",
+		     description="Allows for starting queue",
+		     roles=["admin"],
+		     dangerous=True,
+		     default_groups=[ADMIN_GROUP]),
+		dict(key="ADDQUEUE",
+		     name="Continuous Print Add to Queue",
+		     description="Allows for adding prints to the queue",
+		     roles=["admin"],
+		     dangerous=False,
+		     default_groups=[ADMIN_GROUP]),
+		dict(key="RMQUEUE",
+		     name="Continuous Print Remove from QUeue ",
+		     description="Allows for removing prints from the queue",
+		     roles=["admin"],
+		     dangerous=True,
+		     default_groups=[ADMIN_GROUP]),
+    		]),
+		dict(key="LOOP",
+		     name="Continuous Print Loop the QUeue ",
+		     description="Allows for looping the queue",
+		     roles=["admin"],
+		     dangerous=True,
+		     default_groups=[ADMIN_GROUP]),
+    		]),
+		dict(key="STOPQUEUE",
+		     name="Continuous Print Stop from QUeue ",
+		     description="Allows for stopping(cancelling) the queue",
+		     roles=["admin"],
+		     dangerous=True,
+		     default_groups=[ADMIN_GROUP]),
+    		]),
+		dict(key="CHQUEUE",
+		     name="Continuous Print Stop from QUeue ",
+		     description="Allows for stopping(cancelling) the queue",
+		     roles=["admin"],
+		     dangerous=True,
+		     default_groups=[ADMIN_GROUP]),
+    		]),
+		
 
 
 __plugin_name__ = "Continuous Print"
@@ -645,6 +705,7 @@ def __plugin_load__():
 	global __plugin_hooks__
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
-		"octoprint.comm.protocol.action": __plugin_implementation__.resume_action_handler # register to listen for "M118 //action:" commands
+		"octoprint.comm.protocol.action": __plugin_implementation__.resume_action_handler, # register to listen for "M118 //action:" commands
+		"octoprint.access.permissions": __plugin_implementation__.add_permissions
 	}
 
