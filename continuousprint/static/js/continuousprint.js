@@ -14,32 +14,31 @@ $(function() {
 		self.files = parameters[2];
 		self.settings = parameters[3];
 		self.is_paused = ko.observable();
-        self.is_looped = ko.observable();
-        self.ncount=1;
-        self.itemsInQueue=0;
+		self.is_looped = ko.observable();
+		self.ncount=1;
+		self.itemsInQueue=0;
         
 		self.onBeforeBinding = function() {
 			self.loadQueue();
 			self.is_paused(false);
-            self.checkLooped();
+			self.checkLooped();
             
 		}
-        self.files.addtoqueue = function(data) {
-            var sd="true";
-            if(data.origin=="local"){
-                sd="false";
-            }
-            data.sd=sd;
-            self.addToQueue({
-                name:data.name,
-                path:data.path,
-                sd:sd,
-                count:1
-                
-            });
-                
-			
+		self.files.addtoqueue = function(data) {
+			var sd="true";
+			if(data.origin=="local"){
+			 sd="false";
+			}
+			data.sd=sd;
+			self.addToQueue({
+			 name:data.name,
+			 path:data.path,
+			 sd:sd,
+			 //printArea:data.printsrea,
+			 count:1
+			});
 		}
+		
 		self.loadQueue = function() {
             $('#queue_list').html("");
 			$.ajax({
@@ -264,15 +263,19 @@ $(function() {
 					
 						for(var i = 0; i < filelist.length; i++) {
 							var file = filelist[i];
-							var row = $("<div data-name='"+file.name.toLowerCase()+"' style='padding: 10px;border-bottom: 1px solid #000;'>"+file.path+"<div class='pull-right'><i style='cursor: pointer' class='fa fa-plus text-success' data-name='"+file.name+"' data-path='"+file.path+"' data-sd='"+(file.origin=="local" ? false : true)+"'></i></div></div>");
+							var row = $("<div data-name='"+file.name.toLowerCase()+"' style='padding: 10px;border-bottom: 1px solid #000;'>"+file.path+"<div class='pull-right'><i style='cursor: pointer' class='fa fa-plus text-success' data-name='"+file.name+/*"' data-printarea='"+JSON.stringify(file.gcodeAnalysis.printingArea)+*/"' data-path='"+file.path+"' data-sd='"+(file.origin=="local" ? false : true)+"'></i></div></div>");
 							row.find(".fa").click(function() {
 								self.addToQueue({
 									name: $(this).data("name"),
 									path: $(this).data("path"),
 									sd: $(this).data("sd"),
-                                    count: 1
+                     					count: 1,
+                     					//printArea:$(this).data("printarea")
+                                    					
 								});
+								//console.log($(this).data("printarea"))
 							});
+							
 							$('#file_list').append(row);
 						}
 						
@@ -316,7 +319,8 @@ $(function() {
 		}
 
 		self.addToQueue = function(data) {
-            self.reloadQueue(data,"ADD");
+            		self.reloadQueue(data,"ADD");
+            		console.log(data)
 			$.ajax({
 				url: "plugin/continuousprint/addqueue",
 				type: "POST",

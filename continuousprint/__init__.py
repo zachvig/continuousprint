@@ -3,6 +3,10 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import flask, json
+
+import time
+import os
+
 from octoprint.server.util.flask import restricted_access
 from octoprint.events import eventManager, Events
 
@@ -28,10 +32,9 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 			cp_print_history="[]"
 			
 		)
-
-
-
-
+	
+	bed_script=''
+	
 	##~~ StartupPlugin mixin
 	def on_after_startup(self):
 		self._logger.info("Continuous Print Plugin started")
@@ -50,8 +53,9 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 
 			# On fail stop all prints
 			if event == Events.PRINT_FAILED or event == Events.PRINT_CANCELLED:
-				self.enabled = False # Set enabled to false
-				self._plugin_manager.send_plugin_message(self._identifier, dict(type="error", msg="Print queue cancelled"))
+				if self.enabled == True:
+					self.enabled = False # Set enabled to false
+					self._plugin_manager.send_plugin_message(self._identifier, dict(type="error", msg="Print queue cancelled"))
 
 			if event == Events.PRINTER_STATE_CHANGED:
 				# If the printer is operational and the last print succeeded then we start next print
@@ -179,21 +183,20 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 
 	def clear_bed(self):
 		self._logger.info("Clearing bed")
-		bed_clearing_script=self._settings.get(["cp_bed_clearing_script"]).split("\n")	
+		bed_clearing_script=self.bed_script.split("\n")	
 		self._printer.commands(self.parse_gcode(bed_clearing_script),force=True)
 		
 	def complete_queue(self):
 		self.enabled = False # Set enabled to false
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="complete", msg="Print Queue Complete"))
 		queue_finished_script = self._settings.get(["cp_queue_finished"]).split("\n")
-		self._printer.commands(self.parse_gcode(queue_finished_script,force=True))#send queue finished script to the printer
+		self._printer.commands(self.parse_gcode(queue_finished_script),force=True)#send queue finished script to the printer
 		
 		
 
 	def start_next_print(self):
 		if self.enabled == True and self.paused == False:
 			queue = json.loads(self._settings.get(["cp_queue"]))
-				
 			
 			if len(queue) > 0:
 				self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", msg="Starting print: " + queue[0]["name"]))
@@ -206,15 +209,247 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 					self._printer.select_file(queue[0]["path"], sd)
 					self._logger.info(queue[0]["path"])
 					self._printer.start_print()
+					self.update_bed_script(queue[0])
+					self._logger.debug(self.bed_script)
 				except InvalidFileLocation:
 					self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", msg="ERROR file not found"))
 				except InvalidFileType:
 					self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", msg="ERROR file not gcode"))
 			else:
 				self.complete_queue()
+	def update_bed_script(self, file):
+		self.bed_script=self._settings.get(["cp_bed_clearing_script"])
+		#possible values:
+		#[MIN_X]
+		#[MIN_X@Z<a]
+		#[MIN_X@Z>a]
+		#[MIN_X@a<Z<b]
+		# a and b are z height in mm. MIN_X is the minumum x position in that range
+		# 
+		#[MIN_X]
+		#[MIN_Y]
+		#[MIN_Z]
+		#[MAX_X]
+		#[MAX_Y]
+		#[MAX_Z]
+		#[PAUSE] is used later on
+		i=0
+		args=[]
+		while i<len(self.bed_script):
+			out=''
+			if self.bed_script[i]=='[':
+				i+=1
+				# start end str lower upper value
+				args.append([i-1,0,'',None,None,None])
+				while self.bed_script[i]!=']':
+					args[-1][2]+=self.bed_script[i]
+					i+=1
+				if args[-1]=='PAUSE':
+					args.pop(-1)
+				else:
+					args[-1][1]=i
+					if '@' in args[-1][2]:
+						range=args[-1][2].split('@')[1].upper()
+						args[-1][2]=args[-1][2].split('@')[0].upper()
+						if range.startswith('Z'):
+							if '>' in range:
+								args[-1][3]=float(range.split('>')[1])
+							if '<' in range:
+								args[-1][4]=float(range.split('<')[1])
+						else:
+							args[-1][3]=float(range.split('<')[0])
+							args[-1][4]=float(range.split('<')[2])
+					
+			i+=1
 			
+		self._logger.debug('processing '+file['path']+', args are '+str(args))
+		start=time.time()#to test speeds
+		gcode=open(os.path.expanduser('~/.octoprint/uploads/')+file['path'],'r').read().split('\n')
+		Z=0
+		i=0
+		#remove comment only lines
+		while i<len(gcode):
+			x=0
+			while gcode[i]=='':
+				gcode.pop(i)
+				if i>=len(gcode):
+					break
+			if i<len(gcode):
+				while gcode[i][x]==' 'or gcode[i][x]=='\t':
+					x+=1
+					if x>=len(gcode[i]):
+						x-=1
+						break
+				if gcode[i][x:].startswith(';'):
+					gcode.pop(i)
+				i+=1
+		#remove last layer (if the last layer is incredibly larger than the one before it, it will fall and not take up quite so much space) Also on the last Layer the extruder often moves to some point and does not print. These two things mean that it must be removed.
+		i=len(gcode)-1
+		g=gcode[i].upper()
+		t=0
+		while g[t]==' 'or g[t]=='\t':
+			t+=1
+		while 'Z' not in g or (not g[t:].startswith('G1') and not g[t:].startswith('G1') ):
+			gcode.pop(i)
+			i-=1
+			g=gcode[i].upper()
+			t=0
+			while g[t]==' 'or g[t]=='\t':
+				t+=1
+		del g
+		del t
+		del i
+		for line in gcode:
+			c=0
+			line=line.upper()
+			while c<len(line):
+				x=None
+				y=None
+				if line[c]=='G':
+					c+=1
+					if c>=len(line):
+						break
+					if line[c]=='0'or line[c]=='1':
+						if 'Z' in line.split(';')[0]:
+							Z=line.split(';')[0].split('Z')[1].split(' ')[0]
+							if Z!='':
+								Z=float(Z)
+						if 'X' in line.split(';')[0]:
+							x=line.split(';')[0].split('X')[1].split(' ')[0]
+							if x!='':
+								x=float(x)
+						if 'Y' in line.split(';')[0]:
+							y=line.split(';')[0].split('Y')[1].split(' ')[0]
+							if y!='':
+								y=float(y)
+				i=0
+				while i<len(args):
+					if args[i][2]=='MIN_X':
+						if x:
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=x
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=x
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=x
+							else:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=x
+					elif args[i][2]=='MIN_Y':
+						if y:
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]>y:
+										args[i][5]=y
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]>y:
+										args[i][5]=y
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=y
+							else:
+									if not args[i][5]or args[i][5]>x:
+										args[i][5]=y
+					elif args[i][2]=='MIN_Z':
+						if args[i][3] and args[i][4]:
+							if args[i][3]<Z<args[i][4]:
+								if not args[i][5]or args[i][5]>Z:
+									args[i][5]=Z
+						elif args[i][3]:
+							if args[i][3]<Z:
+								if not args[i][5]or args[i][5]>Z:
+									args[i][5]=Z
+						elif args[i][4]:
+							if Z<args[i][4]:
+								if not args[i][5]or args[i][5]>Z:
+									args[i][5]=Z
+						else:
+								if not args[i][5]or args[i][5]>Z:
+									args[i][5]=Z
+					elif args[i][2]=='MAX_X':
+						if x:
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]<x:
+										args[i][5]=x
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]<x:
+										args[i][5]=x
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]<x:
+										args[i][5]=x
+							else:
+									if not args[i][5]or args[i][5]<x:
+										args[i][5]=x
+					elif args[i][2]=='MAX_Y':
+						if y:
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]<y:
+										args[i][5]=y
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]<y:
+										args[i][5]=y
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]<y:
+										args[i][5]=y
+							else:
+									if not args[i][5]or args[i][5]<y:
+										args[i][5]=y
+					elif args[i][2]=='MAX_Z':
+						if args[i][3] and args[i][4]:
+							if args[i][3]<Z<args[i][4]:
+								if not args[i][5]or args[i][5]<Z:
+									args[i][5]=Z
+						elif args[i][3]:
+							if args[i][3]<Z:
+								if not args[i][5]or args[i][5]<Z:
+									args[i][5]=Z
+						elif args[i][4]:
+							if Z<args[i][4]:
+								if not args[i][5]or args[i][5]<Z:
+									args[i][5]=Z
+						else:
+								if not args[i][5]or args[i][5]<Z:
+									args[i][5]=Z
+					i+=1
+				c+=1
+		del Z
+		del gcode
+		i=0
+		ls=list(self.bed_script)
+		Del=0#difference in number of characters
+		while i<len(args):
+			# start end str lower upper value
+			s=args[i][0]-Del
+			while s<=args[i][1]-Del:
+				ls.pop(s)
+				Del+=1#increase number of deleted characters
+			ls.insert(s,str(args[i][5]))#add value of variable to gcode
+			Del-=len(str(args[i][5]))#characters have been added
+			i+=1
+			ls=list(''.join(ls))
+		self.bed_script=''.join(ls)
+		self._logger.debug('processed bed_script: '+self.bed_script)
 			
-			
+				
+		end=time.time()
+		self._logger.info('Processed bed script, time to process: '+str(end-start))
+				
+		
+		#'~/.octoprint/uploads/'
 	##~~ APIs
 	@octoprint.plugin.BlueprintPlugin.route("/looped", methods=["GET"])
 	@restricted_access
@@ -227,7 +462,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	def loop(self):
 		self.looped=True
 		self._settings.set(["cp_looped"], "true")
-
+		return flask.make_response("success", 200)
 		
 		
 	@octoprint.plugin.BlueprintPlugin.route("/unloop", methods=["GET"])
@@ -235,7 +470,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	def unloop(self):
 		self.looped=False
 		self._settings.set(["cp_looped"], "false")
-
+		return flask.make_response("success", 200)
 		
 	@octoprint.plugin.BlueprintPlugin.route("/queue", methods=["GET"])
 	@restricted_access
@@ -289,12 +524,25 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	@restricted_access
 	def add_queue(self):
 		queue = json.loads(self._settings.get(["cp_queue"]))
-		queue.append(dict(
-			name=flask.request.form["name"],
-			path=flask.request.form["path"],
-			sd=flask.request.form["sd"],
-			count=int(flask.request.form["count"])
-		))
+		try:
+			self._logger.debug(flask.request.form)
+			queue.append(dict(
+				name=flask.request.form["name"],
+				path=flask.request.form["path"],
+				sd=flask.request.form["sd"],
+				count=int(flask.request.form["count"]),
+				#printArea=dict(
+				#	maxX=flask.request.form["printArea[maxX]"],
+				#	maxY=flask.request.form["printArea[maxY]"],
+				#	maxZ=flask.request.form["printArea[maxZ]"],
+				#	minX=flask.request.form["printArea[minX]"],
+				#	minY=flask.request.form["printArea[minY]"],
+				#	minZ=flask.request.form["printArea[minZ]"],
+				#)
+			))
+		except:
+			self._logger.debug('error')
+			return flask.make_response("error", 400)
 		self._settings.set(["cp_queue"], json.dumps(queue))
 		self._settings.save()
 		return flask.make_response("success", 200)
