@@ -61,21 +61,22 @@ $(function() {
                             if (i == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp;";}
                             row = $("<div class='n"+i+"' style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "background: white;")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
                             row.mousedown(function(i){
-                            	if(row.class!="n0"){
-		                    	this.clicked=true;
-		                    	if (this.style.translate.replace(' ','').length>3){
-				            	this.pos={
-				            		x:i.originalEvent.clientX-this.style.translate.toString().split(' ')[0].replace('px','')-1+1,
-				            		y:i.originalEvent.clientY-this.style.translate.toString().split(' ')[1].replace('px','')-1+1,
-				            	}
-				        }
-				        else{
-				        	this.pos={
-				            		x:i.originalEvent.clientX,
-				            		y:i.originalEvent.clientY,
-				            	}
-				       }
-		               }
+				if (this.style.translate.replace(' ','').length>3){
+					this.pos={
+						x:i.originalEvent.clientX-this.style.translate.toString().split(' ')[0].replace('px','')-1+1,
+						y:i.originalEvent.clientY-this.style.translate.toString().split(' ')[1].replace('px','')-1+1,
+					}
+				}
+				else{
+					this.pos={
+						x:i.originalEvent.clientX,
+						y:i.originalEvent.clientY,
+					}
+				}
+				if((i.originalEvent.clientY-this.pos.y+this.offsetTop)>=this.parentNode.offsetTop+64){
+					this.clicked=true;
+				}
+		               
 		                	
                             	//console.log("click")
                             });
@@ -95,16 +96,18 @@ $(function() {
 		                    		this.style.opacity=1;
 		                    		let pos=Math.round((i.originalEvent.clientY-this.pos.y)/64)
 		                    		this.style.translate="0px "+pos*64+"px";
+		                    		this.ytran=pos*64;
 		                    		fromindex=$(this).children(".queue-row-container").children(".queue-inner-row-container").children('.fa-text').data("index")-1+1;
-		                    		
 		                    		if(pos+this.offset!=0){
 				            		for(var f=0;f<this.parentNode.childNodes.length;f++){
 				            			if(f<=fromindex&&f>=pos+fromindex){
 				            				console.log(this.parentNode.childNodes[f]);
 				            				if(this.parentNode.childNodes[f].style.translate!=""){
-				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].style.translate.toString().replace('px','').split(' ')[1]-1+65+"px";
+				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].ytran+"px";
+				            					this.parentNode.childNodes[f].ytran+=64
 				            				}else{
 				            					this.parentNode.childNodes[f].style.translate="0px 64px";
+				            					this.parentNode.childNodes[f]=64;
 				            				}
 				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
 									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f+1).toString());
@@ -123,9 +126,11 @@ $(function() {
 				            			else if(f>=fromindex&&f<=pos+fromindex){
 				            				console.log(this.parentNode.childNodes[f]);
 									if(this.parentNode.childNodes[f].style.translate!=""){
-				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].style.translate.toString().replace('px','').split(' ')[1].replace('px','')-1-63+"px";
+				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].ytran+"px";
+				            					this.parentNode.childNodes[f].ytran-=64
 				            				}else{
 				            					this.parentNode.childNodes[f].style.translate="0px -64px";
+				            					this.parentNode.childNodes[f]=-64;
 				            				}
 				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
 									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f-1).toString());
