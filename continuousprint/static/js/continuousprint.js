@@ -40,7 +40,7 @@ $(function() {
 		}
 		
 		self.loadQueue = function() {
-            $('#queue_list').html("");
+            		$('#queue_list').html("");
 			$.ajax({
 				url: "plugin/continuousprint/queue",
 				type: "GET",
@@ -49,7 +49,7 @@ $(function() {
 					"X-Api-Key":UI_API_KEY,
 				},
 				success:function(r){
-                    self.itemsInQueue=r.queue.length;
+                   		 self.itemsInQueue=r.queue.length;
 					if (r.queue.length > 0) {
 						$('#queue_list').html("");
 						for(var i = 0; i < r.queue.length; i++) {
@@ -59,7 +59,102 @@ $(function() {
                             var other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp; <i style='cursor: pointer' class='fa fa-chevron-up' data-index='"+i+"'></i>&nbsp;";
                             if (i == 0) {other = "";}
                             if (i == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp;";}
-                            row = $("<div class='n"+i+"'style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row = $("<div class='n"+i+"' style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "background: white;")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row.mousedown(function(i){
+                            	if(row.class!="n0"){
+		                    	this.clicked=true;
+		                    	if (this.style.translate.replace(' ','').length>3){
+				            	this.pos={
+				            		x:i.originalEvent.clientX-this.style.translate.toString().split(' ')[0].replace('px','')-1+1,
+				            		y:i.originalEvent.clientY-this.style.translate.toString().split(' ')[1].replace('px','')-1+1,
+				            	}
+				        }
+				        else{
+				        	this.pos={
+				            		x:i.originalEvent.clientX,
+				            		y:i.originalEvent.clientY,
+				            	}
+				       }
+		               }
+		                	
+                            	//console.log("click")
+                            });
+                            
+                            row.mousemove(function(i){
+                            	if(this.clicked&&(i.originalEvent.clientY-this.pos.y+this.offsetTop)>this.parentNode.offsetTop+64){
+                            		this.style.translate="0px "+(i.originalEvent.clientY-this.pos.y)+"px";
+                            		this.style.opacity=0.5;
+                            	}
+                            	//console.log(i)
+                            	//console.log("move")
+                            });
+                            row.mouseup(function(i){
+                            		console.log('up')
+                            		if(this.clicked){
+		                    		this.clicked=false;
+		                    		this.style.opacity=1;
+		                    		let pos=Math.round((i.originalEvent.clientY-this.pos.y)/64)
+		                    		this.style.translate="0px "+pos*64+"px";
+		                    		fromindex=$(this).children(".queue-row-container").children(".queue-inner-row-container").children('.fa-text').data("index")-1+1;
+		                    		
+		                    		if(pos+this.offset!=0){
+				            		for(var f=0;f<this.parentNode.childNodes.length;f++){
+				            			if(f<=fromindex&&f>=pos+fromindex){
+				            				console.log(this.parentNode.childNodes[f]);
+				            				if(this.parentNode.childNodes[f].style.translate!=""){
+				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].style.translate.toString().replace('px','').split(' ')[1]-1+65+"px";
+				            				}else{
+				            					this.parentNode.childNodes[f].style.translate="0px 64px";
+				            				}
+				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
+									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f+1).toString());
+									if(f>1){
+										$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-down").attr("data-index",(f+1).toString());
+										if(f==2){
+										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").remove();
+										}
+										if(f>2){
+										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").attr("data-index",(f+1).toString());
+										}
+									}
+									
+									this.parentNode.childNodes[f].offset+=1;
+				            			}
+				            			else if(f>=fromindex&&f<=pos+fromindex){
+				            				console.log(this.parentNode.childNodes[f]);
+									if(this.parentNode.childNodes[f].style.translate!=""){
+				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].style.translate.toString().replace('px','').split(' ')[1].replace('px','')-1-63+"px";
+				            				}else{
+				            					this.parentNode.childNodes[f].style.translate="0px -64px";
+				            				}
+				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
+									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f-1).toString());
+									if(f>1){
+										$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-down").attr("data-index",(f-1).toString());
+										if(f==2){
+										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").remove();
+										}
+										if(f>2){
+										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").attr("data-index",(f-1).toString());
+										}
+									}
+									
+									this.parentNode.childNodes[f].offset-=1;
+				            			}
+				            		}
+				            		if(this.offset){
+				            			self.movePos(fromindex,fromindex+pos+this.offset);
+				            		}else{
+				            			self.movePos(fromindex,fromindex+pos);
+				            		}
+				            		
+		                    		}
+						this.offset=this.pos;	
+                            		}
+                            		
+                            		//console.log(i)
+                            		//console.log("up")
+                            });
                             row.find(".fa-minus").click(function() {
                                 self.removeFromQueue($(this).data("index"));
                             });
@@ -79,6 +174,12 @@ $(function() {
                                     }else{blip = false}
                                 });
                             row.find(".fa-text").keyup(function() {
+                                if (blip){
+                                    var ncount= parseInt(this.value);
+                                    self.changecount($(this).data("index"),ncount);
+                                }
+                            });
+                            row.find(".fa-text").mouseup(function() {
                                 if (blip){
                                     var ncount= parseInt(this.value);
                                     self.changecount($(this).data("index"),ncount);
@@ -136,6 +237,7 @@ $(function() {
                    });
             }
             self.reloadQueue = function(data,CMD) {
+            	console.log(data,CMD);
                 if(CMD=="ADD"){
                     var file = data;
                     var row;
@@ -143,6 +245,7 @@ $(function() {
                     if (self.itemsInQueue == 0) {other = "";$('#queue_list').html("");}
                     if (self.itemsInQueue == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+self.itemsInQueue+"'></i>&nbsp;";}
                     row = $("<div class='n" + self.itemsInQueue + "' style='padding: 10px;border-bottom: 1px solid #000;"+(self.itemsInQueue==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+self.itemsInQueue+"' value='" + 1 + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+self.itemsInQueue+"'></i></div></div></div>");
+	       
                     row.find(".fa-minus").click(function() {
                         self.removeFromQueue($(this).data("index"));
                     });
@@ -189,6 +292,8 @@ $(function() {
                     if(i==1){
                         $("#queue_list").children(".n"+i).css("background","#f9f4c0");
                         $("#queue_list").children(".n"+i).children(".queue-row-container").find(".fa-chevron-down").remove();
+                    }else{
+                    	$("#queue_list").children(".n"+i).css("background","white");
                     }
                     $("#queue_list").children(".n"+i).addClass("n"+(i-1).toString());
                     $("#queue_list").children(".n"+i).removeClass("n"+i.toString());
@@ -224,29 +329,22 @@ $(function() {
                 $("#queue_list").children(".n"+data).children(".queue-row-container").children(".queue-inner-row-container").children(".count-box").val(parseInt(temp4));
                 $("#queue_list").children(".n"+(data+1)).children(".queue-row-container").children(".queue-inner-row-container").children(".count-box").val(parseInt(temp3));
             }
-             
-             
-        }
-
-                
-                        
-
-                      
-	    self.checkLooped = function(){
-            $.ajax({
-				url: "plugin/continuousprint/looped",
-				type: "GET",
-				dataType: "text",
-				headers: {"X-Api-Key":UI_API_KEY},
-				success: function(c) {
-					if(c=="true"){
-                        self.is_looped(true);
-                    } else{
-                        self.is_looped(false);
-                    }
-				},
+	}      
+		self.checkLooped = function(){
+			$.ajax({
+					url: "plugin/continuousprint/looped",
+					type: "GET",
+					dataType: "text",
+					headers: {"X-Api-Key":UI_API_KEY},
+					success: function(c) {
+						if(c=="true"){
+							self.is_looped(true);
+						} else{
+							self.is_looped(false);
+						}
+					},
 			});
-        }
+        	}
 		self.getFileList = function() {
 			$('#file_list').html("");
 			$.ajax({
@@ -320,7 +418,7 @@ $(function() {
 
 		self.addToQueue = function(data) {
             		self.reloadQueue(data,"ADD");
-            		console.log(data)
+            		console.log(data);
 			$.ajax({
 				url: "plugin/continuousprint/addqueue",
 				type: "POST",
@@ -338,8 +436,21 @@ $(function() {
 			});
 		}
 		
+		self.movePos = function(indexfrom,indexto) {
+			$.ajax({
+				url: "plugin/continuousprint/queuemove?from=" + indexfrom+"&to="+indexto,
+				type: "GET",
+				dataType: "json",
+				headers: {"X-Api-Key":UI_API_KEY},
+				success: function(c) {
+				},
+				error: function() {
+					self.loadQueue();
+				}
+			});
+		};
 		self.moveUp = function(data) {
-            self.reloadQueue(data,"UP");
+            		self.reloadQueue(data,"UP");
 			$.ajax({
 				url: "plugin/continuousprint/queueup?index=" + data,
 				type: "GET",
@@ -351,9 +462,9 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
-        self.changecount = function(data,ncount){
-            $.ajax({
+		};
+        	self.changecount = function(data,ncount){
+            		$.ajax({
 				url: "plugin/continuousprint/change?count=" + ncount+"&index="+data,
 				type: "GET",
 				dataType: "json",
@@ -365,10 +476,10 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-        }
+        	};
 		
 		self.moveDown = function(data) {
-            self.reloadQueue(data,"DOWN");
+            		self.reloadQueue(data,"DOWN");
 			$.ajax({
 				url: "plugin/continuousprint/queuedown?index=" + data,
 				type: "GET",
@@ -380,10 +491,10 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
+		};
 		
 		self.removeFromQueue = function(data) {
-            self.reloadQueue(data,"SUB");
+            		self.reloadQueue(data,"SUB");
 			$.ajax({
 				url: "plugin/continuousprint/removequeue?index=" + data,
 				type: "DELETE",
@@ -398,7 +509,7 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
+		};
 
 		self.startQueue = function() {
 			self.is_paused(false);
@@ -411,7 +522,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
         
         self.loop = function() {
             self.is_looped(true);
@@ -424,7 +535,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
         self.unloop = function() {
             self.is_looped(false);
 			$.ajax({
@@ -436,7 +547,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
 		
 		self.resumeQueue = function() {
 			self.is_paused(false)
@@ -449,7 +560,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
 
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 			if (plugin != "continuousprint") return;
@@ -491,7 +602,7 @@ $(function() {
 					}
 				});
 			}
-		}
+		};
 	
     /*
     #Adapted from OctoPrint-PrusaSlicerThumbnails

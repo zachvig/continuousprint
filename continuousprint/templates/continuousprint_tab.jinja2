@@ -10,12 +10,17 @@
 
 
 <h3>Continuous Print Queue</h3>
-<button class="btn btn-primary pull-right" data-bind="click: loop, visible: !(is_looped())" title="Press this button to start looping the queue">
-	<i class="fa fa-play"></i>&nbsp;&nbsp;{{ _('loop') }}
+<button class="btn btn-primary pull-right" data-bind="click: loop, visible: !(is_looped())" title="Loop Queue">
+	<i class="fa fa-refresh"></i>&nbsp;&nbsp;{{ _('loop') }}
 </button>
-<button class="btn btn-primary pull-right" data-bind="click: unloop, visible: (is_looped())" title="Press this button to stop looping the queue">
-	<i class="fa fa-play"></i>&nbsp;&nbsp;{{ _('unloop') }}
+<button class="btn btn-primary pull-right" data-bind="click: unloop, visible: (is_looped())" title="Unloop Queue">
+	<i class="fa fa-refresh"></i>&nbsp;&nbsp;{{ _('unloop') }}
 </button>
+<div>
+	<button class="btn btn-primary pull-right" data-bind="click: loadQueue, " title="Refresh Queue">
+		<i class="fa fa-refresh"></i>&nbsp;&nbsp;
+	</button>
+</div>
 <form class="form-horizontal">
     <p>Select files from the file list to include in the print queue, the print queue will print from top to bottom.</p>
     <div class="row-fluid">

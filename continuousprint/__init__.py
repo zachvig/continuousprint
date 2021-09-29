@@ -515,6 +515,22 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		self._settings.set(["cp_queue"], json.dumps(queue))
 		self._settings.save()
 		return flask.jsonify(queue=queue)
+	
+	@octoprint.plugin.BlueprintPlugin.route("/queuemove", methods=["GET"])
+	@restricted_access
+	def queue_move(self):
+		if not Permissions.PLUGIN_CONTINUOUSPRINT_CHQUEUE.can():
+			return flask.make_response("insufficient rights", 403)
+		To = int(flask.request.args.get("to", 0))
+		From = int(flask.request.args.get("from", 0))
+		self._logger.debug("Index"+str(To)+str(From))
+		queue = json.loads(self._settings.get(["cp_queue"]))
+		orig = queue[From]
+		queue.pop(From)
+		queue.insert(To,orig)
+		self._settings.set(["cp_queue"], json.dumps(queue))
+		self._settings.save()		
+		return flask.jsonify(queue=queue)
 		
 	@octoprint.plugin.BlueprintPlugin.route("/queuedown", methods=["GET"])
 	@restricted_access
@@ -529,6 +545,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		self._settings.set(["cp_queue"], json.dumps(queue))
 		self._settings.save()		
 		return flask.jsonify(queue=queue)
+		
 			
 	@octoprint.plugin.BlueprintPlugin.route("/addqueue", methods=["POST"])
 	@restricted_access
