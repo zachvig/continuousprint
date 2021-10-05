@@ -176,6 +176,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		self._printer.set_temperature("bed", bed_clear_threshold)
 		# wait until temp is low enough
 		bed_temp = self._printer.get_current_temperatures()['bed']
+		print("Bed thing: " + str(bed_temp) + " Of Type: " + str(type(bed_temp)))
 		while bed_temp > bed_clear_threshold:
 			self._logger.info(f"Bed temp at {bed_temp} waiting for {bed_clear_threshold}")
 			time.sleep(5)
