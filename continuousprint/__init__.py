@@ -171,16 +171,16 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	def clear_bed(self):
 		self._logger.info("Clearing bed")
 
-		bed_clear_threshold = 25.0
+		bed_clear_threshold = 25
 		# todo set the bed temp
 		self._printer.set_temperature("bed", bed_clear_threshold)
 		# wait until temp is low enough
-		bed_temp = self._printer.get_current_temperatures()['bed']
+		bed_temp = self._printer.get_current_temperatures()['bed']['actual']
 		self._logger.info("Bed thing: " + str(bed_temp) + " Of Type: " + str(type(bed_temp)))
 		while float(bed_temp) > bed_clear_threshold:
 			self._logger.info(f"Bed temp at {bed_temp} waiting for {bed_clear_threshold}")
 			time.sleep(5)
-			bed_temp = self._printer.get_current_temperatures()['bed']
+			bed_temp = self._printer.get_current_temperatures()['bed']['actual']
 
 		# continue to clear the bed
 
