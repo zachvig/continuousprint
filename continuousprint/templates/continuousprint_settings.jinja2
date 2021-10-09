@@ -3,27 +3,40 @@
 	<p>
 		When continually printing the bed needs to be cleared in order for the next print to work.
 	</p>
-	<p>
-		There is a special [PAUSE] command that doesn't get sent to the printer but instead indefinitely pauses the queue until the resume button is pressed.<br />
-		<small style="font-size: 0.8em"><b>Note:</b> this doesn't put the printer into a paused state it simply tells the queue to wait.</small>
-	</p>
+
+    <h5>Bed Clearing Temperature Settings</h5>
+    <p>
+        When enabled, after a print the bed will be set to the <b>Bed Clearing Temperature</b>.
+        Then when the <b>Bed Clearing Threshold</b> is met the Bed clearing G-Code Instructions
+        will be executed.
+    </p>
+
+    <div class="control-group">
+        <label class="control-label">Control Post Print Bed Temperature</label>
+        <div class="controls">
+            <input type=checkbox data-bind="checked: settings.plugins.continuousprint.cp_bed_temp_ctrl_enabled">
+        </div>
+    </div>
 
 	<div class="control-group">
-        <label class="control-label">Bed cleaning Threshold</label>
+        <label class="control-label">Bed Clearing Threshold</label>
         <div class="controls">
-            <textarea rows="1" class="input-block-level" data-bind="value: settings.plugins.continuousprint.cp_bed_clearing_temp_threshold"></textarea>
+            <textarea rows="1" class="temperature-input" data-bind="value: settings.plugins.continuousprint.cp_bed_clearing_temp_threshold"></textarea>
         </div>
     </div>
 
     <div class="control-group">
-        <label class="control-label">Bed cleaning Temperature</label>
+        <label class="control-label">Bed Clearing Temperature</label>
         <div class="controls">
-            <textarea rows="1" class="input-block-level" data-bind="value: settings.plugins.continuousprint.cp_bed_clearing_bed_temp"></textarea>
+            <textarea rows="1" class="temperature-input" data-bind="value: settings.plugins.continuousprint.cp_bed_clearing_bed_temp"></textarea>
         </div>
     </div>
     <p>
         <small style="font-size: 0.8em"><b>Note:</b> Threshold Temp is the temp the cleaning script runs once the bed temperature is lower while the bed cleaning temperature is the temperature the bed is set to. Default for this is 0 (Bed Off)</small>
     </p>
+
+<h5>Bed Clearing G-Code Instructions</h5>
+
 	<div class="control-group">
         <label class="control-label">Bed cleaning script</label>
         <div class="controls">
@@ -37,4 +50,8 @@
             <textarea rows="8" class="input-block-level" data-bind="value: settings.plugins.continuousprint.cp_queue_finished_script"></textarea>
         </div>
     </div>
+    	<p>
+		There is a special [PAUSE] command that doesn't get sent to the printer but instead indefinitely pauses the queue until the resume button is pressed.<br />
+		<small style="font-size: 0.8em"><b>Note:</b> this doesn't put the printer into a paused state it simply tells the queue to wait.</small>
+	</p>
 </form>

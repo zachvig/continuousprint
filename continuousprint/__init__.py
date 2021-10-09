@@ -18,12 +18,13 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 	enabled = False
 	paused = False
 	looped = False
-	item = None;
+	item = None
 
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
 		return dict(
 			cp_queue="[]",
+			cp_bed_temp_ctrl_enabled=False,
 			cp_bed_clearing_temp_threshold=25,
 			cp_bed_clearing_bed_temp=0,
 			cp_bed_clearing_script="M17 ;enable steppers\nG91 ; Set relative for lift\nG0 Z10 ; lift z by 10\nG90 ;back to absolute positioning\nM190 R25 ; set bed to 25 for cooldown\nG4 S90 ; wait for temp stabalisation\nM190 R30 ;verify temp below threshold\nG0 X200 Y235 ;move to back corner\nG0 X110 Y235 ;move to mid bed aft\nG0 Z1v ;come down to 1MM from bed\nG0 Y0 ;wipe forward\nG0 Y235 ;wipe aft\nG28 ; home",
@@ -171,19 +172,19 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		return script
 
 	def clear_bed(self):
-		self._logger.info("Cooling down bed")
+		self._logger.info("Running Clear Bed Routine")
 
-		# bed_clear_threshold = 35
-		# clear_bed_temp = 10
 		# set the bed cooldown temp
-		self._printer.set_temperature("bed", self._settings.get(["cp_bed_clearing_bed_temp"]))
-		# wait until temp is low enough
-		bed_temp = self._printer.get_current_temperatures()['bed']['actual']
-		while bed_temp > float(self._settings.get(["cp_bed_clearing_temp_threshold"])):
-			self._logger.info(
-				f"Bed temp at {bed_temp} waiting for " + str(self._settings.get(["cp_bed_clearing_temp_threshold"])))
-			time.sleep(5)
+		if self._settings.get(["cp_bed_temp_ctrl_enabled"]) is True:
+			self._logger.info("Preparing for Bed Cooldown")
+			self._printer.set_temperature("bed", self._settings.get(["cp_bed_clearing_bed_temp"]))
 			bed_temp = self._printer.get_current_temperatures()['bed']['actual']
+			# wait until temp is low enough
+			while bed_temp > float(self._settings.get(["cp_bed_clearing_temp_threshold"])):
+				self._logger.info(
+					f"Bed temp at {bed_temp} waiting for " + str(self._settings.get(["cp_bed_clearing_temp_threshold"])))
+				time.sleep(5)
+				bed_temp = self._printer.get_current_temperatures()['bed']['actual']
 
 		# continue to clear the bed
 		self._logger.info("Clearing bed")
@@ -195,7 +196,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="complete", msg="Print Queue Complete"))
 		queue_finished_script = self._settings.get(["cp_queue_finished"]).split("\n")
 		self._printer.commands(
-			self.parse_gcode(queue_finished_script, force=True))  # send queue finished script to the printer
+			self.parse_gcode(queue_finished_script))  # send queue finished script to the printer
 
 	def start_next_print(self):
 		if self.enabled == True and self.paused == False:
