@@ -4,7 +4,7 @@
  * Author: Michael New
  * License: AGPLv3
  */
-
+const svg=' <?xml version="1.0" encoding="UTF-8" standalone="no"?><svg   xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"   width="8.0506573mm"   height="5.1754222mm"   viewBox="0 0 8.0506573 5.1754222"   version="1.1"   id="svg8"   inkscape:version="1.0.2 (e86c870879, 2021-01-15)"   sodipodi:docname="drawing.svg">  <defs     id="defs2" />  <sodipodi:namedview     id="base"     pagecolor="#ffffff"     bordercolor="#666666"     borderopacity="1.0"     inkscape:pageopacity="0.0"     inkscape:pageshadow="2"     inkscape:zoom="7.1574975"     inkscape:cx="35.5073"     inkscape:cy="22.824451"     inkscape:document-units="mm"     inkscape:current-layer="layer1"     inkscape:document-rotation="0"     showgrid="false"     inkscape:window-width="1530"     inkscape:window-height="991"     inkscape:window-x="26"     inkscape:window-y="23"     inkscape:window-maximized="0" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     inkscape:label="Layer 1"     inkscape:groupmode="layer"     id="layer1"     transform="translate(-10,-10)">    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833"       width="1.5335305"       height="1.5335305"       x="11.226084"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6"       width="1.5335305"       height="1.5335305"       x="13.142997"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-7"       width="1.5335305"       height="1.5335305"       x="15.05991"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-5"       width="1.5335305"       height="1.5335305"       x="11.226084"       y="13.634672" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-3"       width="1.5335305"       height="1.5335305"       x="13.142997"       y="13.634672" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-7-5"       width="1.5335305"       height="1.5335305"       x="15.05991"       y="13.634672" />  </g></svg>'
 $(function() {
 	function ContinuousPrintViewModel(parameters) {
 		var self = this;
@@ -56,105 +56,69 @@ $(function() {
 							var file = r.queue[i];
 							var row;
 
-                            var other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp; <i style='cursor: pointer' class='fa fa-chevron-up' data-index='"+i+"'></i>&nbsp;";
                             if (i == 0) {other = "";}
                             if (i == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp;";}
-                            row = $("<div class='n"+i+"' style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "background: white;")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
-                            row.mousedown(function(i){
-				if (this.style.translate.replace(' ','').length>3){
-					this.pos={
-						x:i.originalEvent.clientX-this.style.translate.toString().split(' ')[0].replace('px','')-1+1,
-						y:i.originalEvent.clientY-this.style.translate.toString().split(' ')[1].replace('px','')-1+1,
+                            row = $("<div class='n"+i+"' style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "background: white;")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='drag' data-index='"+i+"'>"+svg+"</i><i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row.find('.drag').mousedown(function(i){
+                            	pNode=this.parentNode.parentNode.parentNode
+				if (pNode.style.translate.replace(' ','').length>3){
+					pNode.pos={
+						x:i.originalEvent.clientX-pNode.style.translate.toString().split(' ')[0].replace('px','')-1+1,
+						y:i.originalEvent.clientY-pNode.style.translate.toString().split(' ')[1].replace('px','')-1+1,
 					}
 				}
 				else{
-					this.pos={
+					pNode.pos={
 						x:i.originalEvent.clientX,
 						y:i.originalEvent.clientY,
 					}
 				}
-				if((i.originalEvent.clientY-this.pos.y+this.offsetTop)>=this.parentNode.offsetTop+64){
-					this.clicked=true;
+				if((i.originalEvent.clientY-pNode.pos.y+pNode.offsetTop)>=pNode.parentNode.offsetTop+64){
+					pNode.clicked=true;
 				}
 		               
 		                	
                             	//console.log("click")
                             });
                             
-                            row.mousemove(function(i){
-                            	if(this.clicked&&(i.originalEvent.clientY-this.pos.y+this.offsetTop)>this.parentNode.offsetTop+64){
-                            		this.style.translate="0px "+(i.originalEvent.clientY-this.pos.y)+"px";
-                            		this.style.opacity=0.5;
+                            row.find('.drag').mousemove(function(i){
+                            	pNode=this.parentNode.parentNode.parentNode
+                            	if(pNode.clicked&&(i.originalEvent.clientY-pNode.pos.y+pNode.offsetTop)>pNode.parentNode.offsetTop+64){
+                            		pNode.style.translate="0px "+(i.originalEvent.clientY-pNode.pos.y)+"px";
+                            		pNode.style.opacity=0.5;
                             	}
                             	//console.log(i)
                             	//console.log("move")
                             });
-                            row.mouseup(function(i){
+                            row.find('.drag').mouseup(function(i){
+                            		pNode=this.parentNode.parentNode.parentNode
                             		console.log('up')
-                            		if(this.clicked){
-		                    		this.clicked=false;
-		                    		this.style.opacity=1;
-		                    		let pos=Math.round((i.originalEvent.clientY-this.pos.y)/64)
-		                    		this.style.translate="0px "+pos*64+"px";
-		                    		this.ytran=pos*64;
-		                    		fromindex=$(this).children(".queue-row-container").children(".queue-inner-row-container").children('.fa-text').data("index")-1+1;
-		                    		if(pos+this.offset!=0){
-				            		for(var f=0;f<this.parentNode.childNodes.length;f++){
-				            			if(f<=fromindex&&f>=pos+fromindex){
-				            				console.log(this.parentNode.childNodes[f]);
-				            				if(this.parentNode.childNodes[f].style.translate!=""){
-				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].ytran+"px";
-				            					this.parentNode.childNodes[f].ytran+=64
-				            				}else{
-				            					this.parentNode.childNodes[f].style.translate="0px 64px";
-				            					this.parentNode.childNodes[f]=64;
-				            				}
-				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
-									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f+1).toString());
-									if(f>1){
-										$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-down").attr("data-index",(f+1).toString());
-										if(f==2){
-										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").remove();
-										}
-										if(f>2){
-										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").attr("data-index",(f+1).toString());
-										}
-									}
-									
-									this.parentNode.childNodes[f].offset+=1;
-				            			}
-				            			else if(f>=fromindex&&f<=pos+fromindex){
-				            				console.log(this.parentNode.childNodes[f]);
-									if(this.parentNode.childNodes[f].style.translate!=""){
-				            					this.parentNode.childNodes[f].style.translate="0px "+this.parentNode.childNodes[f].ytran+"px";
-				            					this.parentNode.childNodes[f].ytran-=64
-				            				}else{
-				            					this.parentNode.childNodes[f].style.translate="0px -64px";
-				            					this.parentNode.childNodes[f]=-64;
-				            				}
-				            				$(this.parentNode).children(".n"+f).children(".queue-row-container").children(".queue-innner-row-container").children(".count-box").attr("data-index",(i-1).toString());
-									$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-minus").attr("data-index",(f-1).toString());
-									if(f>1){
-										$(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-down").attr("data-index",(f-1).toString());
-										if(f==2){
-										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").remove();
-										}
-										if(f>2){
-										    $(this.parentNode).children(".n"+f).children(".queue-row-container").find(".fa-chevron-up").attr("data-index",(f-1).toString());
-										}
-									}
-									
-									this.parentNode.childNodes[f].offset-=1;
-				            			}
-				            		}
-				            		if(this.offset){
-				            			self.movePos(fromindex,fromindex+pos+this.offset);
-				            		}else{
-				            			self.movePos(fromindex,fromindex+pos);
-				            		}
+                            		if(pNode.clicked){
+		                    		pNode.clicked=false;
+		                    		pNode.style.opacity=1;
+		                    		let pos=Math.round((i.originalEvent.clientY-pNode.pos.y)/64)
+		                    		pNode.style.translate="0px "+pos*64+"px";
+		                    		pNode.ytran=pos*64;
+		                    		fromindex=$(pNode).children(".queue-row-container").children(".queue-inner-row-container").children('.fa-text').data("index")-1+1;
+		                    		//if(!pNode.offset){
+		                    		//	pNode.offset=0;
+		                    		//}
+
+		                    		//if(pos+pNode.offset!=0){
+		                    	//		let tmpofs=pNode.offset
+				            		//for(var f=0;f<pNode.parentNode.childNodes.length;f++){
+				            			
+				            		//}
+
+				          //  		console.log("pnode-offset="+pNode.offset)
+				            //		console.log("tmpofs="+tmpofs)
+				            //		console.log("fromindex="+fromindex)
+				            //		console.log("pos=="+pos)
+				            //		self.movePos(fromindex,fromindex+pos-pNode.offset);
 				            		
-		                    		}
-						this.offset=this.pos;	
+				            		
+		                    		//}
+						//pNode.offset=pos;
                             		}
                             		
                             		//console.log(i)
@@ -208,32 +172,31 @@ $(function() {
             self.loadPrintHistory = function(items){
                 $('#print_history').html("");
                 $.ajax({
-				url: "plugin/continuousprint/print_history",
-				type: "GET",
-				dataType: "json",
-				headers: {
-					"X-Api-Key":UI_API_KEY,
-				},
-				success:function(r){
-					if (r.queue.length > 0) {
-						$('#print_history').html("");
-						for(var i = 0; i < r.queue.length; i++) {
-                            var file=r.queue[i];
-                            var row;
-                            var time = file.time / 60;
-                            var suffix = " mins";
-                            if (time > 60) {
-                                time = time / 60;
-                                suffix = " hours";
-                                if (time > 24) {
-                                    time = time / 24;
-                                    suffix = " days";
-                                }
-                            }
-						    row = $("<div style='padding: 10px; border-bottom: 1px solid #000;background:#c2fccf'>Complete: "+ file.name+ " <div class='pull-right'>took: " + time.toFixed(0) + suffix + "</div></div>")
-                       
-                            $('#print_history').append(row);
-                        }
+			url: "plugin/continuousprint/print_history",
+			type: "GET",
+			dataType: "json",
+			headers: {
+				"X-Api-Key":UI_API_KEY,
+			},
+			success:function(r){
+				if (r.queue.length > 0) {
+					$('#print_history').html("");
+					for(var i = 0; i < r.queue.length; i++) {
+				            var file=r.queue[i];
+				            var row;
+				            var time = file.time / 60;
+				            var suffix = " mins";
+				            if (time > 60) {
+				                time = time / 60;
+				                suffix = " hours";
+				                if (time > 24) {
+				                    time = time / 24;
+				                    suffix = " days";
+				                }
+				            }
+					    row = $("<div style='padding: 10px; border-bottom: 1px solid #000;background:#c2fccf'>Complete: "+ file.name+ " <div class='pull-right'>took: " + time.toFixed(0) + suffix + "</div></div>")
+                    			    $('#print_history').append(row);
+                        		}
                     
                                 } else if(items=="empty"){
                                     $('#queue_list').html("<div style='text-align: center'>Queue is empty</div>");
@@ -442,6 +405,18 @@ $(function() {
 		}
 		
 		self.movePos = function(indexfrom,indexto) {
+			console.log("indexfrom="+indexfrom)
+			console.log("indexto="+indexto)
+			if(indexfrom<indexto){
+				for(var i=indexfrom;i<indexto;i++){
+					self.reloadQueue(i,"DOWN");
+				}
+			}else{
+				for(var i=indexfrom;i>indexto;i--){
+					self.reloadQueue(i,"UP");
+				}
+			}//good enough
+
 			$.ajax({
 				url: "plugin/continuousprint/queuemove?from=" + indexfrom+"&to="+indexto,
 				type: "GET",
