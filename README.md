@@ -1,6 +1,6 @@
 # Continuous Print Queue Plugin
 
-Octoprint plugin that allows users to generate a print queue, specify a print bed clearning script and run the queue which will print-clear-print until the end of the queue.
+Octoprint plugin that allows users to generate a print queue, specify a print bed cleaning script and run the queue which will print-clear-print until the end of the queue.
 
 ## Setup
 
