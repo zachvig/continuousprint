@@ -14,11 +14,9 @@ plugin_package = "continuousprint"
 plugin_name = "continuousprint"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-<<<<<<< ours
-plugin_version = "1.3.0"
-=======
-plugin_version = "1.2.4a"
->>>>>>> theirs
+
+plugin_version = "1.2.4"
+
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
