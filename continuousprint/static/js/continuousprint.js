@@ -4,7 +4,7 @@
  * Author: Michael New
  * License: AGPLv3
  */
-
+const svg=' <?xml version="1.0" encoding="UTF-8" standalone="no"?><svg   xmlns:dc="http://purl.org/dc/elements/1.1/"   xmlns:cc="http://creativecommons.org/ns#"   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"   xmlns:svg="http://www.w3.org/2000/svg"   xmlns="http://www.w3.org/2000/svg"   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"   width="8.0506573mm"   height="5.1754222mm"   viewBox="0 0 8.0506573 5.1754222"   version="1.1"   id="svg8"   inkscape:version="1.0.2 (e86c870879, 2021-01-15)"   sodipodi:docname="drawing.svg">  <defs     id="defs2" />  <sodipodi:namedview     id="base"     pagecolor="#ffffff"     bordercolor="#666666"     borderopacity="1.0"     inkscape:pageopacity="0.0"     inkscape:pageshadow="2"     inkscape:zoom="7.1574975"     inkscape:cx="35.5073"     inkscape:cy="22.824451"     inkscape:document-units="mm"     inkscape:current-layer="layer1"     inkscape:document-rotation="0"     showgrid="false"     inkscape:window-width="1530"     inkscape:window-height="991"     inkscape:window-x="26"     inkscape:window-y="23"     inkscape:window-maximized="0" />  <metadata     id="metadata5">    <rdf:RDF>      <cc:Work         rdf:about="">        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />        <dc:title></dc:title>      </cc:Work>    </rdf:RDF>  </metadata>  <g     inkscape:label="Layer 1"     inkscape:groupmode="layer"     id="layer1"     transform="translate(-10,-10)">    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833"       width="1.5335305"       height="1.5335305"       x="11.226084"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6"       width="1.5335305"       height="1.5335305"       x="13.142997"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-7"       width="1.5335305"       height="1.5335305"       x="15.05991"       y="11.717759" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-5"       width="1.5335305"       height="1.5335305"       x="11.226084"       y="13.634672" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-3"       width="1.5335305"       height="1.5335305"       x="13.142997"       y="13.634672" />    <rect       style="fill:#999999;stroke-width:0.0124756"       id="rect833-6-7-5"       width="1.5335305"       height="1.5335305"       x="15.05991"       y="13.634672" />  </g></svg>'
 $(function() {
 	function ContinuousPrintViewModel(parameters) {
 		var self = this;
@@ -14,34 +14,33 @@ $(function() {
 		self.files = parameters[2];
 		self.settings = parameters[3];
 		self.is_paused = ko.observable();
-        self.is_looped = ko.observable();
-        self.ncount=1;
-        self.itemsInQueue=0;
+		self.is_looped = ko.observable();
+		self.ncount=1;
+		self.itemsInQueue=0;
         
 		self.onBeforeBinding = function() {
 			self.loadQueue();
 			self.is_paused(false);
-            self.checkLooped();
+			self.checkLooped();
             
 		}
-        self.files.addtoqueue = function(data) {
-            var sd="true";
-            if(data.origin=="local"){
-                sd="false";
-            }
-            data.sd=sd;
-            self.addToQueue({
-                name:data.name,
-                path:data.path,
-                sd:sd,
-                count:1
-                
-            });
-                
-			
+		self.files.addtoqueue = function(data) {
+			var sd="true";
+			if(data.origin=="local"){
+			 sd="false";
+			}
+			data.sd=sd;
+			self.addToQueue({
+			 name:data.name,
+			 path:data.path,
+			 sd:sd,
+			 //printArea:data.printsrea,
+			 count:1
+			});
 		}
+		
 		self.loadQueue = function() {
-            $('#queue_list').html("");
+            		$('#queue_list').html("");
 			$.ajax({
 				url: "plugin/continuousprint/queue",
 				type: "GET",
@@ -50,17 +49,81 @@ $(function() {
 					"X-Api-Key":UI_API_KEY,
 				},
 				success:function(r){
-                    self.itemsInQueue=r.queue.length;
+                   		 self.itemsInQueue=r.queue.length;
 					if (r.queue.length > 0) {
 						$('#queue_list').html("");
 						for(var i = 0; i < r.queue.length; i++) {
 							var file = r.queue[i];
 							var row;
 
-                            var other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp; <i style='cursor: pointer' class='fa fa-chevron-up' data-index='"+i+"'></i>&nbsp;";
                             if (i == 0) {other = "";}
                             if (i == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp;";}
-                            row = $("<div class='n"+i+"'style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row = $("<div class='n"+i+"' style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "background: white;")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='drag' data-index='"+i+"'>"+svg+"</i><i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row.find('.drag').mousedown(function(i){
+                            	pNode=this.parentNode.parentNode.parentNode
+				if (pNode.style.translate.replace(' ','').length>3){
+					pNode.pos={
+						x:i.originalEvent.clientX-pNode.style.translate.toString().split(' ')[0].replace('px','')-1+1,
+						y:i.originalEvent.clientY-pNode.style.translate.toString().split(' ')[1].replace('px','')-1+1,
+					}
+				}
+				else{
+					pNode.pos={
+						x:i.originalEvent.clientX,
+						y:i.originalEvent.clientY,
+					}
+				}
+				if((i.originalEvent.clientY-pNode.pos.y+pNode.offsetTop)>=pNode.parentNode.offsetTop+64){
+					pNode.clicked=true;
+				}
+		               
+		                	
+                            	//console.log("click")
+                            });
+                            
+                            row.find('.drag').mousemove(function(i){
+                            	pNode=this.parentNode.parentNode.parentNode
+                            	if(pNode.clicked&&(i.originalEvent.clientY-pNode.pos.y+pNode.offsetTop)>pNode.parentNode.offsetTop+64){
+                            		pNode.style.translate="0px "+(i.originalEvent.clientY-pNode.pos.y)+"px";
+                            		pNode.style.opacity=0.5;
+                            	}
+                            	//console.log(i)
+                            	//console.log("move")
+                            });
+                            row.find('.drag').mouseup(function(i){
+                            		pNode=this.parentNode.parentNode.parentNode
+                            		console.log('up')
+                            		if(pNode.clicked){
+		                    		pNode.clicked=false;
+		                    		pNode.style.opacity=1;
+		                    		let pos=Math.round((i.originalEvent.clientY-pNode.pos.y)/64)
+		                    		pNode.style.translate="0px "+pos*64+"px";
+		                    		pNode.ytran=pos*64;
+		                    		fromindex=$(pNode).children(".queue-row-container").children(".queue-inner-row-container").children('.fa-text').data("index")-1+1;
+		                    		//if(!pNode.offset){
+		                    		//	pNode.offset=0;
+		                    		//}
+
+		                    		//if(pos+pNode.offset!=0){
+		                    	//		let tmpofs=pNode.offset
+				            		//for(var f=0;f<pNode.parentNode.childNodes.length;f++){
+				            			
+				            		//}
+
+				          //  		console.log("pnode-offset="+pNode.offset)
+				            //		console.log("tmpofs="+tmpofs)
+				            //		console.log("fromindex="+fromindex)
+				            //		console.log("pos=="+pos)
+				            //		self.movePos(fromindex,fromindex+pos-pNode.offset);
+				            		
+				            		
+		                    		//}
+						//pNode.offset=pos;
+                            		}
+                            		
+                            		//console.log(i)
+                            		//console.log("up")
+                            });
                             row.find(".fa-minus").click(function() {
                                 self.removeFromQueue($(this).data("index"));
                             });
@@ -85,6 +148,12 @@ $(function() {
                                     self.changecount($(this).data("index"),ncount);
                                 }
                             });
+                            row.find(".fa-text").mouseup(function() {
+                                if (blip){
+                                    var ncount= parseInt(this.value);
+                                    self.changecount($(this).data("index"),ncount);
+                                }
+                            });
                              $('#queue_list').append(row);
                         }
                        
@@ -103,32 +172,31 @@ $(function() {
             self.loadPrintHistory = function(items){
                 $('#print_history').html("");
                 $.ajax({
-				url: "plugin/continuousprint/print_history",
-				type: "GET",
-				dataType: "json",
-				headers: {
-					"X-Api-Key":UI_API_KEY,
-				},
-				success:function(r){
-					if (r.queue.length > 0) {
-						$('#print_history').html("");
-						for(var i = 0; i < r.queue.length; i++) {
-                            var file=r.queue[i];
-                            var row;
-                            var time = file.time / 60;
-                            var suffix = " mins";
-                            if (time > 60) {
-                                time = time / 60;
-                                suffix = " hours";
-                                if (time > 24) {
-                                    time = time / 24;
-                                    suffix = " days";
-                                }
-                            }
-						    row = $("<div style='padding: 10px; border-bottom: 1px solid #000;background:#c2fccf'>Complete: "+ file.name+ " <div class='pull-right'>took: " + time.toFixed(0) + suffix + "</div></div>")
-                       
-                            $('#print_history').append(row);
-                        }
+			url: "plugin/continuousprint/print_history",
+			type: "GET",
+			dataType: "json",
+			headers: {
+				"X-Api-Key":UI_API_KEY,
+			},
+			success:function(r){
+				if (r.queue.length > 0) {
+					$('#print_history').html("");
+					for(var i = 0; i < r.queue.length; i++) {
+				            var file=r.queue[i];
+				            var row;
+				            var time = file.time / 60;
+				            var suffix = " mins";
+				            if (time > 60) {
+				                time = time / 60;
+				                suffix = " hours";
+				                if (time > 24) {
+				                    time = time / 24;
+				                    suffix = " days";
+				                }
+				            }
+					    row = $("<div style='padding: 10px; border-bottom: 1px solid #000;background:#c2fccf'>Complete: "+ file.name+ " <div class='pull-right'>took: " + time.toFixed(0) + suffix + "</div></div>")
+                    			    $('#print_history').append(row);
+                        		}
                     
                                 } else if(items=="empty"){
                                     $('#queue_list').html("<div style='text-align: center'>Queue is empty</div>");
@@ -137,6 +205,7 @@ $(function() {
                    });
             }
             self.reloadQueue = function(data,CMD) {
+            	console.log(data,CMD);
                 if(CMD=="ADD"){
                     var file = data;
                     var row;
@@ -144,6 +213,7 @@ $(function() {
                     if (self.itemsInQueue == 0) {other = "";$('#queue_list').html("");}
                     if (self.itemsInQueue == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+self.itemsInQueue+"'></i>&nbsp;";}
                     row = $("<div class='n" + self.itemsInQueue + "' style='padding: 10px;border-bottom: 1px solid #000;"+(self.itemsInQueue==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+self.itemsInQueue+"' value='" + 1 + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+self.itemsInQueue+"'></i></div></div></div>");
+	       
                     row.find(".fa-minus").click(function() {
                         self.removeFromQueue($(this).data("index"));
                     });
@@ -190,6 +260,8 @@ $(function() {
                     if(i==1){
                         $("#queue_list").children(".n"+i).css("background","#f9f4c0");
                         $("#queue_list").children(".n"+i).children(".queue-row-container").find(".fa-chevron-down").remove();
+                    }else{
+                    	$("#queue_list").children(".n"+i).css("background","white");
                     }
                     $("#queue_list").children(".n"+i).addClass("n"+(i-1).toString());
                     $("#queue_list").children(".n"+i).removeClass("n"+i.toString());
@@ -225,29 +297,22 @@ $(function() {
                 $("#queue_list").children(".n"+data).children(".queue-row-container").children(".queue-inner-row-container").children(".count-box").val(parseInt(temp4));
                 $("#queue_list").children(".n"+(data+1)).children(".queue-row-container").children(".queue-inner-row-container").children(".count-box").val(parseInt(temp3));
             }
-             
-             
-        }
-
-                
-                        
-
-                      
-	    self.checkLooped = function(){
-            $.ajax({
-				url: "plugin/continuousprint/looped",
-				type: "GET",
-				dataType: "text",
-				headers: {"X-Api-Key":UI_API_KEY},
-				success: function(c) {
-					if(c=="true"){
-                        self.is_looped(true);
-                    } else{
-                        self.is_looped(false);
-                    }
-				},
+	}      
+		self.checkLooped = function(){
+			$.ajax({
+					url: "plugin/continuousprint/looped",
+					type: "GET",
+					dataType: "text",
+					headers: {"X-Api-Key":UI_API_KEY},
+					success: function(c) {
+						if(c=="true"){
+							self.is_looped(true);
+						} else{
+							self.is_looped(false);
+						}
+					},
 			});
-        }
+        	}
 		self.getFileList = function() {
 			$('#file_list').html("");
 			$.ajax({
@@ -264,15 +329,19 @@ $(function() {
 					
 						for(var i = 0; i < filelist.length; i++) {
 							var file = filelist[i];
-							var row = $("<div data-name='"+file.name.toLowerCase()+"' style='padding: 10px;border-bottom: 1px solid #000;'>"+file.path+"<div class='pull-right'><i style='cursor: pointer' class='fa fa-plus text-success' data-name='"+file.name+"' data-path='"+file.path+"' data-sd='"+(file.origin=="local" ? false : true)+"'></i></div></div>");
+							var row = $("<div data-name='"+file.name.toLowerCase()+"' style='padding: 10px;border-bottom: 1px solid #000;'>"+file.path+"<div class='pull-right'><i style='cursor: pointer' class='fa fa-plus text-success' data-name='"+file.name+/*"' data-printarea='"+JSON.stringify(file.gcodeAnalysis.printingArea)+*/"' data-path='"+file.path+"' data-sd='"+(file.origin=="local" ? false : true)+"'></i></div></div>");
 							row.find(".fa").click(function() {
 								self.addToQueue({
 									name: $(this).data("name"),
 									path: $(this).data("path"),
 									sd: $(this).data("sd"),
-                                    count: 1
+                     					count: 1,
+                     					//printArea:$(this).data("printarea")
+                                    					
 								});
+								//console.log($(this).data("printarea"))
 							});
+							
 							$('#file_list').append(row);
 						}
 						
@@ -316,7 +385,8 @@ $(function() {
 		}
 
 		self.addToQueue = function(data) {
-            self.reloadQueue(data,"ADD");
+            		self.reloadQueue(data,"ADD");
+            		console.log(data);
 			$.ajax({
 				url: "plugin/continuousprint/addqueue",
 				type: "POST",
@@ -334,8 +404,33 @@ $(function() {
 			});
 		}
 		
+		self.movePos = function(indexfrom,indexto) {
+			console.log("indexfrom="+indexfrom)
+			console.log("indexto="+indexto)
+			if(indexfrom<indexto){
+				for(var i=indexfrom;i<indexto;i++){
+					self.reloadQueue(i,"DOWN");
+				}
+			}else{
+				for(var i=indexfrom;i>indexto;i--){
+					self.reloadQueue(i,"UP");
+				}
+			}//good enough
+
+			$.ajax({
+				url: "plugin/continuousprint/queuemove?from=" + indexfrom+"&to="+indexto,
+				type: "GET",
+				dataType: "json",
+				headers: {"X-Api-Key":UI_API_KEY},
+				success: function(c) {
+				},
+				error: function() {
+					self.loadQueue();
+				}
+			});
+		};
 		self.moveUp = function(data) {
-            self.reloadQueue(data,"UP");
+            		self.reloadQueue(data,"UP");
 			$.ajax({
 				url: "plugin/continuousprint/queueup?index=" + data,
 				type: "GET",
@@ -347,9 +442,9 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
-        self.changecount = function(data,ncount){
-            $.ajax({
+		};
+        	self.changecount = function(data,ncount){
+            		$.ajax({
 				url: "plugin/continuousprint/change?count=" + ncount+"&index="+data,
 				type: "GET",
 				dataType: "json",
@@ -361,10 +456,10 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-        }
+        	};
 		
 		self.moveDown = function(data) {
-            self.reloadQueue(data,"DOWN");
+            		self.reloadQueue(data,"DOWN");
 			$.ajax({
 				url: "plugin/continuousprint/queuedown?index=" + data,
 				type: "GET",
@@ -376,10 +471,10 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
+		};
 		
 		self.removeFromQueue = function(data) {
-            self.reloadQueue(data,"SUB");
+            		self.reloadQueue(data,"SUB");
 			$.ajax({
 				url: "plugin/continuousprint/removequeue?index=" + data,
 				type: "DELETE",
@@ -394,7 +489,7 @@ $(function() {
 					self.loadQueue();
 				}
 			});
-		}
+		};
 
 		self.startQueue = function() {
 			self.is_paused(false);
@@ -407,7 +502,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
         
         self.loop = function() {
             self.is_looped(true);
@@ -420,7 +515,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
         self.unloop = function() {
             self.is_looped(false);
 			$.ajax({
@@ -432,7 +527,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
 		
 		self.resumeQueue = function() {
 			self.is_paused(false)
@@ -445,7 +540,7 @@ $(function() {
 				},
 				data: {}
 			});
-		}
+		};
 
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 			if (plugin != "continuousprint") return;
@@ -487,7 +582,7 @@ $(function() {
 					}
 				});
 			}
-		}
+		};
 	
     /*
     #Adapted from OctoPrint-PrusaSlicerThumbnails
