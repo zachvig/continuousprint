@@ -261,193 +261,193 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 							args[-1][4]=float(range.split('<')[2])
 					
 			i+=1
-			
-		self._logger.debug('processing '+file['path']+', args are '+str(args))
-		start=time.time()#to test speeds
-		gcode=open(os.path.expanduser('~/.octoprint/uploads/')+file['path'],'r').read().split('\n')
-		Z=0
-		i=0
-		#remove comment only lines
-		while i<len(gcode):
-			x=0
-			while gcode[i]=='':
-				gcode.pop(i)
-				if i>=len(gcode):
-					break
-			if i<len(gcode):
-				while gcode[i][x]==' 'or gcode[i][x]=='\t':
-					x+=1
-					if x>=len(gcode[i]):
-						x-=1
-						break
-				if gcode[i][x:].startswith(';'):
+		if len(args)>0:#so this is only run when args are in the script.
+			self._logger.debug('processing '+file['path']+', args are '+str(args))
+			start=time.time()#to test speeds
+			gcode=open(os.path.expanduser('~/.octoprint/uploads/')+file['path'],'r').read().split('\n')
+			Z=0
+			i=0
+			#remove comment only lines
+			while i<len(gcode):
+				x=0
+				while gcode[i]=='':
 					gcode.pop(i)
-				i+=1
-		#remove last layer (if the last layer is incredibly larger than the one before it, it will fall and not take up quite so much space) Also on the last Layer the extruder often moves to some point and does not print. These two things mean that it must be removed.
-		i=len(gcode)-1
-		g=gcode[i].upper()
-		t=0
-		while g[t]==' 'or g[t]=='\t':
-			t+=1
-		while 'Z' not in g or (not g[t:].startswith('G1') and not g[t:].startswith('G1') ):
-			gcode.pop(i)
-			i-=1
+					if i>=len(gcode):
+						break
+				if i<len(gcode):
+					while gcode[i][x]==' 'or gcode[i][x]=='\t':
+						x+=1
+						if x>=len(gcode[i]):
+							x-=1
+							break
+					if gcode[i][x:].startswith(';'):
+						gcode.pop(i)
+					i+=1
+			#remove last layer (if the last layer is incredibly larger than the one before it, it will fall and not take up quite so much space) Also on the last Layer the extruder often moves to some point and does not print. These two things mean that it must be removed.
+			i=len(gcode)-1
 			g=gcode[i].upper()
 			t=0
 			while g[t]==' 'or g[t]=='\t':
 				t+=1
-		del g
-		del t
-		del i
-		for line in gcode:
-			c=0
-			line=line.upper()
-			while c<len(line):
-				x=None
-				y=None
-				if line[c]=='G':
+			while 'Z' not in g or (not g[t:].startswith('G1') and not g[t:].startswith('G1') ):
+				gcode.pop(i)
+				i-=1
+				g=gcode[i].upper()
+				t=0
+				while g[t]==' 'or g[t]=='\t':
+					t+=1
+			del g
+			del t
+			del i
+			for line in gcode:
+				c=0
+				line=line.upper()
+				while c<len(line):
+					x=None
+					y=None
+					if line[c]=='G':
+						c+=1
+						if c>=len(line):
+							break
+						if line[c]=='0'or line[c]=='1':
+							if 'Z' in line.split(';')[0]:
+								Z=line.split(';')[0].split('Z')[1].split(' ')[0]
+								if Z!='':
+									Z=float(Z)
+							if 'X' in line.split(';')[0]:
+								x=line.split(';')[0].split('X')[1].split(' ')[0]
+								if x!='':
+									x=float(x)
+							if 'Y' in line.split(';')[0]:
+								y=line.split(';')[0].split('Y')[1].split(' ')[0]
+								if y!='':
+									y=float(y)
+					i=0
+					while i<len(args):
+						if args[i][2]=='MIN_X':
+							if x:
+								if args[i][3] and args[i][4]:
+									if args[i][3]<Z<args[i][4]:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=x
+								elif args[i][3]:
+									if args[i][3]<Z:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=x
+								elif args[i][4]:
+									if Z<args[i][4]:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=x
+								else:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=x
+						elif args[i][2]=='MIN_Y':
+							if y:
+								if args[i][3] and args[i][4]:
+									if args[i][3]<Z<args[i][4]:
+										if not args[i][5]or args[i][5]>y:
+											args[i][5]=y
+								elif args[i][3]:
+									if args[i][3]<Z:
+										if not args[i][5]or args[i][5]>y:
+											args[i][5]=y
+								elif args[i][4]:
+									if Z<args[i][4]:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=y
+								else:
+										if not args[i][5]or args[i][5]>x:
+											args[i][5]=y
+						elif args[i][2]=='MIN_Z':
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]>Z:
+										args[i][5]=Z
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]>Z:
+										args[i][5]=Z
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]>Z:
+										args[i][5]=Z
+							else:
+									if not args[i][5]or args[i][5]>Z:
+										args[i][5]=Z
+						elif args[i][2]=='MAX_X':
+							if x:
+								if args[i][3] and args[i][4]:
+									if args[i][3]<Z<args[i][4]:
+										if not args[i][5]or args[i][5]<x:
+											args[i][5]=x
+								elif args[i][3]:
+									if args[i][3]<Z:
+										if not args[i][5]or args[i][5]<x:
+											args[i][5]=x
+								elif args[i][4]:
+									if Z<args[i][4]:
+										if not args[i][5]or args[i][5]<x:
+											args[i][5]=x
+								else:
+										if not args[i][5]or args[i][5]<x:
+											args[i][5]=x
+						elif args[i][2]=='MAX_Y':
+							if y:
+								if args[i][3] and args[i][4]:
+									if args[i][3]<Z<args[i][4]:
+										if not args[i][5]or args[i][5]<y:
+											args[i][5]=y
+								elif args[i][3]:
+									if args[i][3]<Z:
+										if not args[i][5]or args[i][5]<y:
+											args[i][5]=y
+								elif args[i][4]:
+									if Z<args[i][4]:
+										if not args[i][5]or args[i][5]<y:
+											args[i][5]=y
+								else:
+										if not args[i][5]or args[i][5]<y:
+											args[i][5]=y
+						elif args[i][2]=='MAX_Z':
+							if args[i][3] and args[i][4]:
+								if args[i][3]<Z<args[i][4]:
+									if not args[i][5]or args[i][5]<Z:
+										args[i][5]=Z
+							elif args[i][3]:
+								if args[i][3]<Z:
+									if not args[i][5]or args[i][5]<Z:
+										args[i][5]=Z
+							elif args[i][4]:
+								if Z<args[i][4]:
+									if not args[i][5]or args[i][5]<Z:
+										args[i][5]=Z
+							else:
+									if not args[i][5]or args[i][5]<Z:
+										args[i][5]=Z
+						i+=1
 					c+=1
-					if c>=len(line):
-						break
-					if line[c]=='0'or line[c]=='1':
-						if 'Z' in line.split(';')[0]:
-							Z=line.split(';')[0].split('Z')[1].split(' ')[0]
-							if Z!='':
-								Z=float(Z)
-						if 'X' in line.split(';')[0]:
-							x=line.split(';')[0].split('X')[1].split(' ')[0]
-							if x!='':
-								x=float(x)
-						if 'Y' in line.split(';')[0]:
-							y=line.split(';')[0].split('Y')[1].split(' ')[0]
-							if y!='':
-								y=float(y)
-				i=0
-				while i<len(args):
-					if args[i][2]=='MIN_X':
-						if x:
-							if args[i][3] and args[i][4]:
-								if args[i][3]<Z<args[i][4]:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=x
-							elif args[i][3]:
-								if args[i][3]<Z:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=x
-							elif args[i][4]:
-								if Z<args[i][4]:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=x
-							else:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=x
-					elif args[i][2]=='MIN_Y':
-						if y:
-							if args[i][3] and args[i][4]:
-								if args[i][3]<Z<args[i][4]:
-									if not args[i][5]or args[i][5]>y:
-										args[i][5]=y
-							elif args[i][3]:
-								if args[i][3]<Z:
-									if not args[i][5]or args[i][5]>y:
-										args[i][5]=y
-							elif args[i][4]:
-								if Z<args[i][4]:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=y
-							else:
-									if not args[i][5]or args[i][5]>x:
-										args[i][5]=y
-					elif args[i][2]=='MIN_Z':
-						if args[i][3] and args[i][4]:
-							if args[i][3]<Z<args[i][4]:
-								if not args[i][5]or args[i][5]>Z:
-									args[i][5]=Z
-						elif args[i][3]:
-							if args[i][3]<Z:
-								if not args[i][5]or args[i][5]>Z:
-									args[i][5]=Z
-						elif args[i][4]:
-							if Z<args[i][4]:
-								if not args[i][5]or args[i][5]>Z:
-									args[i][5]=Z
-						else:
-								if not args[i][5]or args[i][5]>Z:
-									args[i][5]=Z
-					elif args[i][2]=='MAX_X':
-						if x:
-							if args[i][3] and args[i][4]:
-								if args[i][3]<Z<args[i][4]:
-									if not args[i][5]or args[i][5]<x:
-										args[i][5]=x
-							elif args[i][3]:
-								if args[i][3]<Z:
-									if not args[i][5]or args[i][5]<x:
-										args[i][5]=x
-							elif args[i][4]:
-								if Z<args[i][4]:
-									if not args[i][5]or args[i][5]<x:
-										args[i][5]=x
-							else:
-									if not args[i][5]or args[i][5]<x:
-										args[i][5]=x
-					elif args[i][2]=='MAX_Y':
-						if y:
-							if args[i][3] and args[i][4]:
-								if args[i][3]<Z<args[i][4]:
-									if not args[i][5]or args[i][5]<y:
-										args[i][5]=y
-							elif args[i][3]:
-								if args[i][3]<Z:
-									if not args[i][5]or args[i][5]<y:
-										args[i][5]=y
-							elif args[i][4]:
-								if Z<args[i][4]:
-									if not args[i][5]or args[i][5]<y:
-										args[i][5]=y
-							else:
-									if not args[i][5]or args[i][5]<y:
-										args[i][5]=y
-					elif args[i][2]=='MAX_Z':
-						if args[i][3] and args[i][4]:
-							if args[i][3]<Z<args[i][4]:
-								if not args[i][5]or args[i][5]<Z:
-									args[i][5]=Z
-						elif args[i][3]:
-							if args[i][3]<Z:
-								if not args[i][5]or args[i][5]<Z:
-									args[i][5]=Z
-						elif args[i][4]:
-							if Z<args[i][4]:
-								if not args[i][5]or args[i][5]<Z:
-									args[i][5]=Z
-						else:
-								if not args[i][5]or args[i][5]<Z:
-									args[i][5]=Z
-					i+=1
-				c+=1
-		del Z
-		del gcode
-		i=0
-		ls=list(self.bed_script)
-		Del=0#difference in number of characters
-		while i<len(args):
-			# start end str lower upper value
-			s=args[i][0]-Del
-			while s<=args[i][1]-Del:
-				ls.pop(s)
-				Del+=1#increase number of deleted characters
-			ls.insert(s,str(args[i][5]))#add value of variable to gcode
-			Del-=len(str(args[i][5]))#characters have been added
-			i+=1
-			ls=list(''.join(ls))
-		self.bed_script=''.join(ls)
-		self._logger.debug('processed bed_script: '+self.bed_script)
-			
+			del Z
+			del gcode
+			i=0
+			ls=list(self.bed_script)
+			Del=0#difference in number of characters
+			while i<len(args):
+				# start end str lower upper value
+				s=args[i][0]-Del
+				while s<=args[i][1]-Del:
+					ls.pop(s)
+					Del+=1#increase number of deleted characters
+				ls.insert(s,str(args[i][5]))#add value of variable to gcode
+				Del-=len(str(args[i][5]))#characters have been added
+				i+=1
+				ls=list(''.join(ls))
+			self.bed_script=''.join(ls)
+			self._logger.debug('processed bed_script: '+self.bed_script)
 				
-		end=time.time()
-		self._logger.info('Processed bed script, time to process: '+str(end-start))
-				
+					
+			end=time.time()
+			self._logger.info('Processed bed script, time to process: '+str(end-start))
+					
 		
 		#'~/.octoprint/uploads/'
 	##~~ APIs
