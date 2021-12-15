@@ -188,7 +188,7 @@ $(function() {
                         }
                     }
                     if(i==1){
-                        $("#queue_list").children(".n"+i).css("background","#f9f4c0");
+                        $("#queue_list").children(".n"+i).css("background","#c7c2fc");
                         $("#queue_list").children(".n"+i).children(".queue-row-container").find(".fa-chevron-down").remove();
                     }
                     $("#queue_list").children(".n"+i).addClass("n"+(i-1).toString());
