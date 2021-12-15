@@ -143,7 +143,7 @@ $(function() {
                     var other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+self.itemsInQueue+"'></i>&nbsp; <i style='cursor: pointer' class='fa fa-chevron-up' data-index='"+self.itemsInQueue+"'></i>&nbsp;";
                     if (self.itemsInQueue == 0) {other = "";$('#queue_list').html("");}
                     if (self.itemsInQueue == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+self.itemsInQueue+"'></i>&nbsp;";}
-                    row = $("<div class='n" + self.itemsInQueue + "' style='padding: 10px;border-bottom: 1px solid #000;"+(self.itemsInQueue==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+self.itemsInQueue+"' value='" + 1 + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+self.itemsInQueue+"'></i></div></div></div>");
+                    row = $("<div class='n" + self.itemsInQueue + "' style='padding: 10px;border-bottom: 1px solid #000;"+(self.itemsInQueue==0 ? "background: #c7c2fc;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+self.itemsInQueue+"' value='" + 1 + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+self.itemsInQueue+"'></i></div></div></div>");
                     row.find(".fa-minus").click(function() {
                         self.removeFromQueue($(this).data("index"));
                     });
