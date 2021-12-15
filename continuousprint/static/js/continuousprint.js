@@ -60,7 +60,7 @@ $(function() {
                             var other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp; <i style='cursor: pointer' class='fa fa-chevron-up' data-index='"+i+"'></i>&nbsp;";
                             if (i == 0) {other = "";}
                             if (i == 1) {other = "<i style='cursor: pointer' class='fa fa-chevron-down' data-index='"+i+"'></i>&nbsp;";}
-                            row = $("<div class='n"+i+"'style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #f9f4c0;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'><input class='fa fa-text count-box' type = 'number' data-index='"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
+                            row = $("<div class='n"+i+"'style='padding: 10px;border-bottom: 1px solid #000;"+(i==0 ? "background: #c7c2fc;" : "")+"'><div class='queue-row-container'><div class='queue-inner-row-container'>"+i+"' value='" + file.count + "'/><p class='file-name' > " + file.name + "</p></div><div>" + other + "<i style='cursor: pointer' class='fa fa-minus text-error' data-index='"+i+"'></i></div></div></div>");
                             row.find(".fa-minus").click(function() {
                                 self.removeFromQueue($(this).data("index"));
                             });
