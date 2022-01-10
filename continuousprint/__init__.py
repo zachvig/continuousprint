@@ -359,7 +359,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 
 				# version check: github repository
 				type="github_release",
-				user="Zinc-OS",
+				user="zachvig",
 				repo="continuousprint",
 				current=self._plugin_version,
 				stable_branch=dict(
@@ -373,7 +373,7 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 				    )
 				],
 				# update method: pip
-				pip="https://github.com/Zinc-OS/continuousprint/archive/{target_version}.zip"
+				pip="https://github.com/zachvig/continuousprint/archive/{target_version}.zip"
 			)
 		)
 
