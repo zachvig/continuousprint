@@ -14,20 +14,20 @@ plugin_package = "continuousprint"
 plugin_name = "continuousprint"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.2.3a"
+plugin_version = "1.0.0"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
 plugin_description = """Allows a print to be restarted after it has been completed. Use with a Gcode at the end to sweep the old print off the bed in preparation for the new."""
 
 # The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
-plugin_author = "Louis Sarwal, formerly Paul Goddard"
+plugin_author = "Forked by: Protosthetics Company, From: Louis Sarwal"
 
 # The plugin's author's mail address.
-plugin_author_email = "louis.sarwal@gmail.com"
+plugin_author_email = "zvig@protosthetics.com"
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
-plugin_url = "https://github.com/Zinc-OS/continuousprint"
+plugin_url = "https://github.com/zachvig/continuousprint"
 
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"
