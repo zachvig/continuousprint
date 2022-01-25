@@ -348,45 +348,10 @@ class ContinuousprintPlugin(octoprint.plugin.SettingsPlugin,
 		)
 
 
-	def get_update_information(self):
-		# Define the configuration for your plugin to use with the Software Update
-		# Plugin here. See https://docs.octoprint.org/en/master/bundledplugins/softwareupdate.html
-		# for details.
-		return dict(
-			continuousprint=dict(
-				displayName="Continuous Print Plugin",
-				displayVersion=self._plugin_version,
-
-				# version check: github repository
-				type="github_release",
-				user="zachvig",
-				repo="continuousprint",
-				current=self._plugin_version,
-				stable_branch=dict(
-				    name="Stable", branch="master", comittish=["master"]
-				),
-				prerelease_branches=[
-				    dict(
-					name="Release Candidate",
-					branch="rc",
-					comittish=["rc", "master"],
-				    )
-				],
-				# update method: pip
-				pip="https://github.com/zachvig/continuousprint/archive/{target_version}.zip"
-			)
-		)
-
-
 __plugin_name__ = "Continuous Print"
 __plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
 
 def __plugin_load__():
 	global __plugin_implementation__
 	__plugin_implementation__ = ContinuousprintPlugin()
-
-	global __plugin_hooks__
-	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
-	}
 
